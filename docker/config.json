@@ -1,0 +1,5 @@
+{
+  "sourceDir": "/source",
+  "targetDir": "/dist",
+  "fc2TargetDir": "/dist-FC2"
+}
