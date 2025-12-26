@@ -1,4 +1,4 @@
-import { Metadata } from './Metadata'
+import type { Metadata } from './Metadata'
 
 export type Media = {
   path: string

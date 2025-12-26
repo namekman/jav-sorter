@@ -1,14 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { FileTable } from '@/components/FileTable'
 import {
   mutationOptions,
   queryOptions,
   useMutation,
   useQuery,
 } from '@tanstack/react-query'
-import { listScans, scanFile } from '@/server/sorter'
 import { useEffect, useMemo, useState } from 'react'
-import { listDirectory, ScanResult } from '@/lib/scanner'
+import { useAsyncQueuer } from '@tanstack/react-pacer'
+import { ChevronLeft, ChevronRight, Trash } from 'lucide-react'
+import { isNil, merge, sortBy } from 'lodash-es'
+import type { ScanResult } from '@/lib/scanner'
+import { FileTable } from '@/components/FileTable'
+import { listScans, scanFile } from '@/server/sorter'
+import { listDirectory } from '@/lib/scanner'
 import { MetadataForm } from '@/components/MetadataForm'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -18,10 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAsyncQueuer } from '@tanstack/react-pacer'
-import { ChevronLeft, ChevronRight, Trash } from 'lucide-react'
 import { MetadataChooserDialog } from '@/components/MetadataChooserDialog'
-import { isNil, merge, sortBy } from 'lodash-es'
 import { Button } from '@/components/ui/button'
 import { Delayer } from '@/components/Delayer'
 import { getConfig } from '@/server/config'
@@ -63,18 +64,15 @@ export function Sort() {
   } = useQuery(listDirectoryQuery(config.sourceDir))
   const { mutateAsync, isPending } = useMutation(
     mutationOptions({
-      mutationFn: (data: string) => scanFile({ data }),
+      mutationFn: (d: string) => scanFile({ data: d }),
       retryDelay: 10000,
       retry: (count) => count < 2,
-      onSuccess: (sort) => {
-        sort &&
-          setData(
-            sortBy(
-              [...data.filter((d) => d.path !== sort.path), sort],
-              (sort) => sort.path.toLowerCase(),
-            ),
-          )
-      },
+      onSuccess: (res) =>
+        setData(
+          sortBy([...data.filter((d) => d.path !== res.path), res], (s) =>
+            s.path.toLowerCase(),
+          ),
+        ),
     }),
   )
   const queuer = useAsyncQueuer<string>(
@@ -110,7 +108,7 @@ export function Sort() {
             variant="ghost"
             disabled={!selected}
             onClick={() => {
-              setSelected((selected) => (selected ?? 0) - 1)
+              setSelected((s) => (s ?? 0) - 1)
             }}
           >
             <ChevronLeft />
@@ -126,7 +124,7 @@ export function Sort() {
             <SelectContent>
               {data.map((val, idx) => (
                 <SelectItem key={val.path} value={`${idx}`}>
-                  {val.path.split(/[\\\/]/).slice(-1)[0]}
+                  {val.path.split(/[\\/]/).slice(-1)[0]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -136,7 +134,7 @@ export function Sort() {
             variant="ghost"
             disabled={isNil(selected) || selected === data.length - 1}
             onClick={() => {
-              setSelected((selected) => (selected ?? 0) + 1)
+              setSelected((s) => (s ?? 0) + 1)
             }}
           >
             <ChevronRight />
@@ -145,8 +143,8 @@ export function Sort() {
             <MetadataChooserDialog
               data={selectedData}
               onSubmit={(metadata) => {
-                setData((data) => [
-                  ...data.slice(0, selected),
+                setData((d) => [
+                  ...d.slice(0, selected),
                   {
                     ...selectedData,
                     currentMetadata: merge(
@@ -154,7 +152,7 @@ export function Sort() {
                       metadata,
                     ),
                   },
-                  ...data.slice(selected + 1),
+                  ...d.slice(selected + 1),
                 ])
               }}
             />
@@ -163,9 +161,9 @@ export function Sort() {
             <Button
               className="cursor-pointer"
               onClick={() => {
-                setData((data) => [
-                  ...data.slice(0, selected),
-                  ...data.slice(selected + 1),
+                setData((d) => [
+                  ...d.slice(0, selected),
+                  ...d.slice(selected + 1),
                 ])
                 selectedData && removeScanFn({ data: selectedData.path })
               }}
@@ -209,7 +207,7 @@ export function Sort() {
                   ? config.fc2TargetDir
                   : config.targetDir
               }
-              onSuccess={async (mediaPath) => {
+              onSuccess={(mediaPath) => {
                 refetch()
                 setData(data.filter(({ path }) => path !== mediaPath))
               }}

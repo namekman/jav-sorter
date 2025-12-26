@@ -1,7 +1,7 @@
+import { createServerFn } from '@tanstack/react-start'
 import { fetchActresses } from '@/lib/actress-store'
 import { getAllScans } from '@/lib/scan-repository'
 import * as scanner from '@/lib/scanner'
-import { createServerFn } from '@tanstack/react-start'
 
 export const listScans = createServerFn({ method: 'GET' }).handler(getAllScans)
 

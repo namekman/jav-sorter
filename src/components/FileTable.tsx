@@ -1,4 +1,3 @@
-import { listDirectory } from '@/lib/scanner'
 import {
   flexRender,
   getCoreRowModel,
@@ -18,6 +17,7 @@ import { Button } from './ui/button'
 import { CheckIcon } from './ui/check'
 import { CogIcon } from './ui/cog'
 import { CloudUploadIcon } from './ui/cloud-upload'
+import type { listDirectory } from '@/lib/scanner'
 
 export const FileTable = ({
   files,
@@ -101,7 +101,7 @@ export const FileTable = ({
         ))}
       </TableHeader>
       <TableBody>
-        {table.getRowModel().rows?.length ? (
+        {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}

@@ -1,12 +1,12 @@
-import { sortFileFn, updateDraftFn } from '@/lib/sort'
-import { Media } from '@/model/Media'
-import { Metadata } from '@/model/Metadata'
 import { mutationOptions, useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Plus, Trash } from 'lucide-react'
-import { useAppForm } from '@/hooks/sort.form'
 import { Button } from './ui/button'
 import { ActressChooserDialog } from './ActressChooserDialog'
+import type { Media } from '@/model/Media'
+import type { Metadata } from '@/model/Metadata'
+import { useAppForm } from '@/hooks/sort.form'
+import { sortFileFn, updateDraftFn } from '@/lib/sort'
 
 export const MetadataForm = ({
   media,
@@ -109,7 +109,7 @@ export const MetadataForm = ({
             </form.AppField>
           </div>
         </div>
-        {form.state.values?.cover && (
+        {form.state.values.cover && (
           <img className="mx-auto h-100" src={form.state.values.cover} />
         )}
       </div>
@@ -163,13 +163,13 @@ export const MetadataForm = ({
                 </div>
                 <div className="w-[calc(100%-45px)]">
                   <form.AppField name={`actors[${idx}].enName`}>
-                    {(field) => <field.TextField />}
+                    {(f) => <f.TextField />}
                   </form.AppField>
                   <form.AppField name={`actors[${idx}].jpName`}>
-                    {(field) => <field.TextField />}
+                    {(f) => <f.TextField />}
                   </form.AppField>
                   <form.AppField name={`actors[${idx}].thumbnail`}>
-                    {(field) => <field.TextField />}
+                    {(f) => <f.TextField />}
                   </form.AppField>
                   {actor.thumbnail && (
                     <div className="items-center flex max-w-[200px] max-h-[200px] overflow-hidden rounded-2xl">

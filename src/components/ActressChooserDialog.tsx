@@ -1,3 +1,6 @@
+import { Search } from 'lucide-react'
+import { useState } from 'react'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import {
   Dialog,
   DialogClose,
@@ -9,12 +12,9 @@ import {
 } from './ui/dialog'
 import { Button } from './ui/button'
 import { Label } from './ui/label'
-import { Search } from 'lucide-react'
-import { useState } from 'react'
-import { queryOptions, useQuery } from '@tanstack/react-query'
-import { fetchActressFn } from '@/server/actress'
-import { Actor } from '@/model/Actor'
 import { Combobox } from './ComboBox'
+import type { Actor } from '@/model/Actor'
+import { fetchActressFn } from '@/server/actress'
 
 const actressQuery = (query: string) =>
   queryOptions({
@@ -45,7 +45,7 @@ export const ActressChooserDialog = ({
           <Label>Actress</Label>
           <Combobox
             className="w-full max"
-            items={(data ?? [])?.map((actress) => ({
+            items={(data ?? []).map((actress) => ({
               value: actress.jpName,
               label: `${actress.enName} - ${actress.jpName} (${actress.aliases?.filter((a) => a !== actress.jpName).join(', ')})`,
             }))}

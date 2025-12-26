@@ -1,8 +1,8 @@
-import { Metadata } from '@/model/Metadata'
-import { Provider } from '../Provider'
-import { Page } from 'puppeteer'
-import { closePage, openPage, removeCookies } from '@/lib/puppeteer'
 import { compact } from 'lodash-es'
+import type { Provider } from '../Provider'
+import type { Page } from 'puppeteer'
+import type { Metadata } from '@/model/Metadata'
+import { closePage, openPage, removeCookies } from '@/lib/puppeteer'
 
 export class PaipanConProvider implements Provider {
   name = 'fc2'
@@ -16,15 +16,15 @@ export class PaipanConProvider implements Provider {
       return compact(
         await page.$$eval('.text-center span', (arr) =>
           arr
-            .filter((el) => el.textContent?.includes(':'))
-            .map((el) => el.textContent?.split(':') ?? []),
+            .filter((el) => el.textContent.includes(':'))
+            .map((el) => el.textContent.split(':')),
         ),
       )
     } catch {
       return []
     }
   }
-  private fetchPaipanconRow(rows: string[][], name: string) {
+  private fetchPaipanconRow(rows: Array<Array<string>>, name: string) {
     try {
       const row = rows.find(([header]) => header.includes(name))
       return compact(row?.[1]?.split(',').map((p) => p.trim()))
@@ -34,16 +34,16 @@ export class PaipanConProvider implements Provider {
   }
 
   private async getContentMetadata(page: Page) {
-    let title = await (page.isClosed()
+    const title = await (page.isClosed()
       ? ''
       : page
           .waitForSelector('h2')
           .then((handler) =>
             handler?.evaluate((el) =>
-              el.textContent?.split(' - ').slice(1).join(' - '),
+              el.textContent.split(' - ').slice(1).join(' - '),
             ),
           ))
-    if (!title || (await page.title())?.includes('Page not found')) {
+    if (!title || (await page.title()).includes('Page not found')) {
       return
     }
 
@@ -51,7 +51,7 @@ export class PaipanConProvider implements Provider {
       page.url().split('/').filter(Boolean),
     ).replace('FC2-PPV', 'FC2PPV')
     const rows = await this.fetchPaipanconRows(page)
-    const maker = this.fetchPaipanconRow(rows, 'Seller Name')?.[0]
+    const maker = this.fetchPaipanconRow(rows, 'Seller Name')[0]
     return {
       url: page.url(),
       type: 'fc2',
@@ -66,8 +66,8 @@ export class PaipanConProvider implements Provider {
           '.text-center',
           (arr) =>
             arr
-              .find((el) => el.textContent?.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/))
-              ?.textContent?.trim() ?? '',
+              .find((el) => el.textContent.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/))
+              ?.textContent.trim() ?? '',
         ),
       ).getTime(),
       cover: await page
@@ -84,7 +84,7 @@ export class PaipanConProvider implements Provider {
             ?.getAttribute('src'),
         )
         .then((img) => (img ? [`https://${this.domain}${img}`] : [])),
-      actors: this.fetchPaipanconRow(rows, 'Actress')?.map((jpName) => ({
+      actors: this.fetchPaipanconRow(rows, 'Actress').map((jpName) => ({
         enName: jpName,
         jpName,
       })),

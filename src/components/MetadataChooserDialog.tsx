@@ -1,4 +1,5 @@
-import { ScanResult } from '@/lib/scanner'
+import { List } from 'lucide-react'
+import { useState } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -10,7 +11,6 @@ import {
 } from './ui/dialog'
 import { Button } from './ui/button'
 import { Label } from './ui/label'
-import { List } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
-import { useState } from 'react'
-import { Metadata } from '@/model/Metadata'
+import type { Metadata } from '@/model/Metadata'
+import type { ScanResult } from '@/lib/scanner'
 
 export const MetadataChooserDialog = ({
   data,

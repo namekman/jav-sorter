@@ -1,8 +1,9 @@
-import { Metadata } from '@/model/Metadata'
-import path from 'path'
+import path from 'node:path'
+import fs from 'node:fs'
 import axios from 'redaxios'
-import fs from 'fs'
 import sharp from 'sharp'
+import type { Metadata } from '@/model/Metadata'
+
 sharp.cache(false)
 
 const writeImage = ({ url, filePath }: { url: string; filePath: string }) =>
@@ -47,7 +48,7 @@ export const downloadAssets = async ({
     const actors = metadata.actors.filter(
       (actor) => actor.enName && actor.thumbnail,
     )
-    if (actors?.length) {
+    if (actors.length) {
       const baseDir = path.join(outDir, '.actors')
       if (!fs.existsSync(baseDir)) {
         fs.mkdirSync(baseDir)

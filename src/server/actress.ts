@@ -1,5 +1,5 @@
-import { fetchActresses, fuzzyActressSearch } from '@/lib/actress-store'
 import { createServerFn } from '@tanstack/react-start'
+import { fetchActresses, fuzzyActressSearch } from '@/lib/actress-store'
 
 export const fetchActressFn = createServerFn({ method: 'GET' })
   .inputValidator((query: string) => query)

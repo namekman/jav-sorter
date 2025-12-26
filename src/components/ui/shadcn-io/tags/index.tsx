@@ -1,16 +1,8 @@
 'use client'
 
 import { XIcon } from 'lucide-react'
-import {
-  type ComponentProps,
-  createContext,
-  type MouseEventHandler,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import type { ComponentProps, MouseEventHandler, ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,15 +38,7 @@ const TagsContext = createContext<TagsContextType>({
   setWidth: undefined,
 })
 
-const useTagsContext = () => {
-  const context = useContext(TagsContext)
-
-  if (!context) {
-    throw new Error('useTagsContext must be used within a TagsProvider')
-  }
-
-  return context
-}
+const useTagsContext = () => useContext(TagsContext)
 
 export type TagsProps = {
   value?: string

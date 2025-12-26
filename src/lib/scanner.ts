@@ -1,16 +1,15 @@
-import { fc2Providers, providers } from '@/providers/repository'
-import type { Media } from '@/model/Media'
-import path from 'path'
-import fs from 'fs'
-import { Metadata } from '@/model/Metadata'
+import path from 'node:path'
+import fs from 'node:fs'
 import { compact, mergeWith, sortBy, uniq, uniqBy } from 'lodash-es'
-import { Actor } from '@/model/Actor'
-import { searchActress } from './actress-store'
 import { createServerFn } from '@tanstack/react-start'
+import { searchActress } from './actress-store'
 import { saveScan } from './scan-repository'
+import type { Media } from '@/model/Media'
+import type { Metadata } from '@/model/Metadata'
+import type { Actor } from '@/model/Actor'
+import { fc2Providers, providers } from '@/providers/repository'
 
 const extensions = ['.mp4', '.mkv', '.avi', '.wmv']
-
 
 export type ScanResult = {
   path: string
@@ -71,7 +70,7 @@ export const complementActresses = async (
     actors: uniqBy(
       await Promise.all(
         metadata.actors
-          ?.filter((actor) => !actor?.jpName.startsWith('—'))
+          ?.filter((actor) => !actor.jpName.startsWith('—'))
           .map(
             async (actor) => (await searchActress(actor, actresses)) ?? actor,
           ) ?? [],
@@ -90,16 +89,14 @@ export const scanFile = async (filePath: string, actresses: Actor[]) => {
         (isFC2 ? fc2Providers : providers).flatMap((p) =>
           p
             .getCandidates(id)
-            .then((candidates) =>
+            .then((list) =>
               Promise.allSettled(
-                candidates.urls
+                list.urls
                   .slice(0, 5)
                   .map((c) =>
                     p
                       .getMetadata(c)
-                      .then((m) =>
-                        candidates.part ? { ...m, part: candidates.part } : m,
-                      ),
+                      .then((m) => (list.part ? { ...m, part: list.part } : m)),
                   ),
               ).then((result) =>
                 result
@@ -114,7 +111,7 @@ export const scanFile = async (filePath: string, actresses: Actor[]) => {
 
   const actressList = compact(
     uniqBy(
-      candidates.flatMap((c) => c?.actors),
+      candidates.flatMap((c) => c.actors),
       'jpName',
     ),
   )
@@ -140,7 +137,7 @@ export const scanFile = async (filePath: string, actresses: Actor[]) => {
   return scanResult
 }
 
-export const scanDirectory = async (
+export const scanDirectory = (
   dir: string,
   actresses: Actor[],
   opts?: { recursive?: boolean },
@@ -158,13 +155,13 @@ export const scanDirectory = async (
 
 export const listDirectory = createServerFn({ method: 'GET' })
   .inputValidator((dir: string) => dir)
-  .handler(async ({ data: dir }) => {
-    return sortBy(
+  .handler(({ data: dir }) =>
+    sortBy(
       fs.readdirSync(dir, { withFileTypes: true }).map((file) => ({
         name: file.name,
         type: file.isDirectory() ? ('dir' as const) : ('file' as const),
         path: path.join(file.parentPath, file.name),
       })),
       (f) => f.path.toLocaleLowerCase(),
-    ).filter((file) => extensions.includes(path.extname(file.name)))
-  })
+    ).filter((file) => extensions.includes(path.extname(file.name))),
+  )

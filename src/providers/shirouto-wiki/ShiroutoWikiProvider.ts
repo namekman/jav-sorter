@@ -1,14 +1,14 @@
-import { Metadata } from '@/model/Metadata'
-import { Provider } from '../Provider'
-import { closePage, openPage } from '@/lib/puppeteer'
 import { compact, uniq } from 'lodash-es'
+import type { Provider } from '../Provider'
+import type { Metadata } from '@/model/Metadata'
+import { closePage, openPage } from '@/lib/puppeteer'
 
 export class ShiroutoWikiProvider implements Provider {
   name = 'shirouto-wiki'
   async getMetadata(url: string): Promise<Metadata | undefined> {
     const page = await openPage(url)
-    if (!page) {
-      return page
+    if (page.isClosed()) {
+      return
     }
     try {
       const rows = await page.$('.post_content dl').then((handler) =>
@@ -17,9 +17,9 @@ export class ShiroutoWikiProvider implements Provider {
           const content = [...el.querySelectorAll('dd')]
           return headers.map((h, idx) => ({
             header: h.textContent,
-            content: content[idx].innerText?.trim(),
+            content: content[idx].innerText.trim(),
             arrayContent: [...(content[idx]?.querySelectorAll('a') ?? [])].map(
-              (e) => e.textContent?.trim(),
+              (e) => e.textContent.trim(),
             ),
           }))
         }),
@@ -33,14 +33,12 @@ export class ShiroutoWikiProvider implements Provider {
         series: rows?.find(({ header }) => header === 'シリーズ')?.content,
         label: rows?.find(({ header }) => header === 'レーベル')?.content,
         contentId: rows?.find(({ header }) => header === 'FANZA品番')?.content,
-        releaseDate: new Date(
-          rows?.find(({ header }) => header === '公開日')?.content!,
-        ).getTime(),
-        cover: await page
-          .$('.p-articleThumb__img')
-          .then((handler) =>
-            handler?.evaluate((el) => el?.getAttribute('src')),
-          ),
+        releaseDate: ((val) => (val ? new Date(val).getTime() : val))(
+          rows?.find(({ header }) => header === '公開日')?.content,
+        ),
+        cover: await page.$eval('.p-articleThumb__img', (el) =>
+          el.getAttribute('src'),
+        ),
         actors: rows
           ?.find(({ header }) => header === '女優名')
           ?.arrayContent.map((a) => ({ jpName: a })),
@@ -52,17 +50,12 @@ export class ShiroutoWikiProvider implements Provider {
 
   async getCandidates(id: string) {
     const page = await openPage(`https://shiroutowiki.work/?s=${id}`)
-    if (!page) {
+    if (page.isClosed()) {
       return { urls: [] }
     }
     return await page
-      .$$('.mgs-data-table__thumb ')
-      .then((arr) =>
-        Promise.all(
-          arr.map((e) =>
-            e?.evaluate((e) => e.closest('a')?.getAttribute('href')),
-          ),
-        ),
+      .$$eval('.mgs-data-table__thumb', (elements) =>
+        elements.map((e) => e.closest('a')?.getAttribute('href')),
       )
       .then(compact)
       .then(uniq)

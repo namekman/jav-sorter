@@ -1,5 +1,14 @@
 import { useStore } from '@tanstack/react-form'
 
+import { useState } from 'react'
+import { Spinner } from './ui/spinner'
+import {
+  Tags,
+  TagsContent,
+  TagsInput,
+  TagsTrigger,
+  TagsValue,
+} from './ui/shadcn-io/tags'
 import { useFieldContext, useFormContext } from '@/hooks/sort.form-context'
 
 import { Button } from '@/components/ui/button'
@@ -9,15 +18,6 @@ import * as ShadcnSelect from '@/components/ui/select'
 import { Slider as ShadcnSlider } from '@/components/ui/slider'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Spinner } from './ui/spinner'
-import {
-  Tags,
-  TagsContent,
-  TagsInput,
-  TagsTrigger,
-  TagsValue,
-} from './ui/shadcn-io/tags'
-import { useState } from 'react'
 
 export function SubscribeButton({ label }: { label: string }) {
   const form = useFormContext()
@@ -120,7 +120,7 @@ export function TagListField({
   label: string
   placeholder?: string
 }) {
-  const field = useFieldContext<string[]>()
+  const field = useFieldContext<string[] | undefined>()
   const errors = useStore(field.store, (state) => state.meta.errors)
   const [newTag, setNewTag] = useState('')
   return (
@@ -134,7 +134,7 @@ export function TagListField({
             <TagsValue
               key={tag}
               onRemove={() =>
-                field.handleChange(field.state.value.filter((t) => tag !== t))
+                field.handleChange(field.state.value?.filter((t) => tag !== t))
               }
             >
               {tag}

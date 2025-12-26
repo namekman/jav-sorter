@@ -1,60 +1,60 @@
-'use client';
+'use client'
 
-import type { Variants } from 'motion/react';
-import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { motion, useAnimation } from 'motion/react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
+import { motion, useAnimation } from 'motion/react'
+import type { Variants } from 'motion/react'
+import type { HTMLAttributes } from 'react'
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'
 
 export interface CloudUploadIconHandle {
-  startAnimation: () => void;
-  stopAnimation: () => void;
+  startAnimation: () => void
+  stopAnimation: () => void
 }
 
 interface CloudUploadIconProps extends HTMLAttributes<HTMLDivElement> {
-  size?: number;
+  size?: number
 }
 
 const CLOUD_VARIANTS: Variants = {
   initial: { y: -2 },
   active: { y: 0 },
-};
+}
 
 const CloudUploadIcon = forwardRef<CloudUploadIconHandle, CloudUploadIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
-    const controls = useAnimation();
-    const isControlledRef = useRef(false);
+    const controls = useAnimation()
+    const isControlledRef = useRef(false)
 
     useImperativeHandle(ref, () => {
-      isControlledRef.current = true;
+      isControlledRef.current = true
       return {
         startAnimation: () => controls.start('initial'),
         stopAnimation: () => controls.start('active'),
-      };
-    });
+      }
+    })
 
     const handleMouseEnter = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start('initial');
+          controls.start('initial')
         } else {
-          onMouseEnter?.(e);
+          onMouseEnter?.(e)
         }
       },
-      [controls, onMouseEnter]
-    );
+      [controls, onMouseEnter],
+    )
 
     const handleMouseLeave = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start('active');
+          controls.start('active')
         } else {
-          onMouseLeave?.(e);
+          onMouseLeave?.(e)
         }
       },
-      [controls, onMouseLeave]
-    );
+      [controls, onMouseLeave],
+    )
 
     return (
       <div
@@ -88,10 +88,10 @@ const CloudUploadIcon = forwardRef<CloudUploadIconHandle, CloudUploadIconProps>(
           </motion.g>
         </svg>
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-CloudUploadIcon.displayName = 'CloudUploadIcon';
+CloudUploadIcon.displayName = 'CloudUploadIcon'
 
-export { CloudUploadIcon };
+export { CloudUploadIcon }

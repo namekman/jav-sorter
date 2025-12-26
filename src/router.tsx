@@ -1,10 +1,10 @@
 import { createRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import { toast } from 'sonner'
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
-import { toast } from 'sonner'
 import { Spinner } from './components/ui/spinner'
 
 // Create a new router instance

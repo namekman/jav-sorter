@@ -1,7 +1,7 @@
-import { Metadata } from '@/model/Metadata'
-import { Provider } from '../Provider'
-import { Page } from 'puppeteer'
-import { compact, trim, uniq } from 'lodash-es'
+import { compact, isNil, trim, uniq } from 'lodash-es'
+import type { Page } from 'puppeteer'
+import type { Provider } from '../Provider'
+import type { Metadata } from '@/model/Metadata'
 import { closePage, openPage } from '@/lib/puppeteer'
 
 const commonDmmPageOptions: Parameters<typeof openPage>[1] = {
@@ -23,7 +23,7 @@ export class DmmJaProvider implements Provider {
       .then((el) => el?.evaluate((e) => e.textContent))
     const info = await page
       .$('[type="application/ld+json"]')
-      .then((h) => h?.evaluate((s) => JSON.parse(s.textContent!)))
+      .then((h) => h?.evaluate((s) => JSON.parse(s.textContent)))
     const rows = await page.$$('tr').then((handlers) =>
       Promise.all(
         handlers.map((handler) =>
@@ -43,9 +43,11 @@ export class DmmJaProvider implements Provider {
       type: 'jav',
       id: rows.find(({ header }) => header === 'メーカー品番：')?.content,
       title,
-      runTime: +rows
-        .find(({ header }) => header === '収録時間：')
-        ?.content?.slice(0, -1)!,
+      runTime: ((val) => (!isNil(val) ? +val : val))(
+        rows
+          .find(({ header }) => header === '収録時間：')
+          ?.content?.slice(0, -1),
+      ),
       maker: rows.find(({ header }) => header === 'メーカー：')?.content,
       series:
         trim(
@@ -121,9 +123,11 @@ export class DmmJaProvider implements Provider {
       type: 'jav',
       id: id ?? rows.find(({ header }) => header === '品番：')?.content,
       title,
-      runTime: +rows
-        .find(({ header }) => header === '収録時間：')
-        ?.content?.slice(0, -1)!,
+      runTime: ((val) => (isNil(val) ? val : +val))(
+        rows
+          .find(({ header }) => header === '収録時間：')
+          ?.content?.slice(0, -1),
+      ),
       maker: rows.find(({ header }) => header === 'メーカー：')?.content,
       series: trim(
         rows.find(({ header }) => header === 'シリーズ：')?.content,
@@ -133,9 +137,9 @@ export class DmmJaProvider implements Provider {
       label: rows.find(({ header }) => header === 'レーベル：')?.content,
       genres: rows.find(({ header }) => header === 'ジャンル：')?.content,
       contentId: rows.find(({ header }) => header === '品番：')?.content,
-      releaseDate: new Date(
-        rows.find(({ header }) => header === '発売日：')?.content!,
-      ).getTime(),
+      releaseDate: ((val) => (val ? new Date(val).getTime() : val))(
+        rows.find(({ header }) => header === '発売日：')?.content,
+      ),
       cover: meta.find(({ header }) => header === 'og:image')?.content,
       description: meta.find(({ header }) => header === 'og:description')
         ?.content,
@@ -152,8 +156,8 @@ export class DmmJaProvider implements Provider {
   async getMetadata(url: string) {
     if (url.startsWith('https://video.dmm.co.jp/')) {
       const page = await openPage(url, commonDmmPageOptions)
-      if (!page) {
-        return page
+      if (page.isClosed()) {
+        return
       }
       return await this.getContentMetadata(page).finally(() => closePage(page))
     }
@@ -170,13 +174,8 @@ export class DmmJaProvider implements Provider {
       commonDmmPageOptions,
     )
     return await page
-      .$$('[alt="Product"]')
-      .then((arr) =>
-        Promise.all(
-          arr.map((e) =>
-            e?.evaluate((e) => e.closest('a')?.getAttribute('href')),
-          ),
-        ),
+      .$$eval('[alt="Product"]', (arr) =>
+        arr.map((e) => e.closest('a')?.getAttribute('href')),
       )
       .then(compact)
       .then(uniq)

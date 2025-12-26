@@ -1,10 +1,10 @@
-import { Actor } from '@/model/Actor'
-import { actressProviders } from '@/providers/repository'
+import fs from 'node:fs'
 import { createServerFn } from '@tanstack/react-start'
 import { Store } from '@tanstack/store'
 import * as csv from 'csv'
-import fs from 'fs'
 import { compact, mergeWith, uniq, uniqBy } from 'lodash-es'
+import type { Actor } from '@/model/Actor'
+import { actressProviders } from '@/providers/repository'
 
 export const actressStore = new Store<Actor[]>([])
 
@@ -37,11 +37,11 @@ export const searchActress = async (
   if (!actors) {
     actors = await fetchActresses()
   }
-  if (!actor || /[0-9？]/.test(actor.jpName ?? '')) {
+  if (/[0-9？]/.test(actor.jpName ?? '')) {
     return
   }
   if (actor.jpName?.includes('（')) {
-    actor.jpName = actor.jpName.split('（')?.[0]
+    actor.jpName = actor.jpName.split('（')[0]
   }
   let result: Actor | undefined
   if (actor.jpName) {
@@ -98,7 +98,7 @@ export const saveActors = (actors: Actor[]) => {
 export const syncRepository = (actor: Actor, actors: Actor[]) => {
   const related = [...(actor.aliases ?? []), actor.jpName]
     .map((alias) => searchSelector(alias)(actors))
-    .find((actors) => actors.length)?.[0]
+    .find((a) => a.length)?.[0]
 
   if (related) {
     related.aliases = uniq([

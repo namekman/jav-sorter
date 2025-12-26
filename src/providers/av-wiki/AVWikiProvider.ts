@@ -1,14 +1,14 @@
-import { Metadata } from '@/model/Metadata'
-import { Provider } from '../Provider'
-import { closePage, openPage } from '@/lib/puppeteer'
 import { compact, uniq } from 'lodash-es'
+import type { Provider } from '../Provider'
+import type { Metadata } from '@/model/Metadata'
+import { closePage, openPage } from '@/lib/puppeteer'
 
 export class AVWikiProvider implements Provider {
   name = 'av-wiki'
   async getMetadata(url: string): Promise<Metadata | undefined> {
     const page = await openPage(url)
-    if (!page) {
-      return page
+    if (page.isClosed()) {
+      return
     }
 
     try {
@@ -18,9 +18,9 @@ export class AVWikiProvider implements Provider {
           const content = [...el.querySelectorAll('dd')]
           return headers.map((h, idx) => ({
             header: h.textContent,
-            content: content[idx].innerText?.trim(),
+            content: content[idx].innerText.trim(),
             arrayContent: [...(content[idx]?.querySelectorAll('a') ?? [])].map(
-              (e) => e.textContent?.trim(),
+              (e) => e.textContent.trim(),
             ),
           }))
         }),
@@ -36,9 +36,9 @@ export class AVWikiProvider implements Provider {
         series: rows?.find(({ header }) => header === 'シリーズ')?.content,
         label: rows?.find(({ header }) => header === 'レーベル')?.content,
         contentId: rows?.find(({ header }) => header === 'FANZA品番')?.content,
-        releaseDate: new Date(
-          rows?.find(({ header }) => header === '配信開始日')?.content!,
-        ).getTime(),
+        releaseDate: ((val) => (val ? new Date(val).getTime() : val))(
+          rows?.find(({ header }) => header === '配信開始日')?.content,
+        ),
         cover: await page
           .$('.image-link-border')
           .then((handler) =>
@@ -63,17 +63,12 @@ export class AVWikiProvider implements Provider {
     const page = await openPage(
       `https://av-wiki.net/?s=${id}&post_type=product`,
     )
-    if (!page) {
+    if (page.isClosed()) {
       return { urls: [] }
     }
     return await page
-      .$$('.read-more')
-      .then((arr) =>
-        Promise.all(
-          arr.map((e) =>
-            e?.evaluate((e) => e.querySelector('a')?.getAttribute('href')),
-          ),
-        ),
+      .$$eval('.read-more', (arr) =>
+        arr.map((e) => e.querySelector('a')?.getAttribute('href')),
       )
       .then(compact)
       .then(uniq)

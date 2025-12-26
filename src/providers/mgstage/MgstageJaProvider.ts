@@ -1,7 +1,7 @@
-import { Metadata } from '@/model/Metadata'
-import { Provider } from '../Provider'
-import { Page } from 'puppeteer'
 import { compact, trim, uniq } from 'lodash-es'
+import type { Page } from 'puppeteer'
+import type { Provider } from '../Provider'
+import type { Metadata } from '@/model/Metadata'
 import { closePage, openPage } from '@/lib/puppeteer'
 
 const commonMGSPageOptions: Parameters<typeof openPage>[1] = {
@@ -29,9 +29,9 @@ export class MgstageJaProvider implements Provider {
             const element = row.querySelector('td')
             return {
               header: row.querySelector('th')?.textContent,
-              content: element?.innerText?.trim(),
+              content: element?.innerText.trim(),
               arrayContent: [...(element?.querySelectorAll('a') ?? [])].map(
-                (e) => e.textContent?.trim(),
+                (e) => e.textContent.trim(),
               ),
             }
           }),
@@ -44,9 +44,11 @@ export class MgstageJaProvider implements Provider {
       type: 'jav',
       id: rows.find(({ header }) => header === '品番：')?.content,
       title,
-      runTime: +rows
-        .find(({ header }) => header === '収録時間：')
-        ?.content?.match(/^([0-9]+)/)?.[0]!,
+      runTime: ((val) => (val ? +val : undefined))(
+        rows
+          .find(({ header }) => header === '収録時間：')
+          ?.content?.match(/^([0-9]+)/)?.[0],
+      ),
       maker: rows.find(({ header }) => header === 'メーカー：')?.content,
       series:
         trim(
@@ -57,28 +59,21 @@ export class MgstageJaProvider implements Provider {
       label: rows.find(({ header }) => header === 'レーベル：')?.content,
       genres:
         rows.find(({ header }) => header === 'ジャンル：')?.arrayContent ?? [],
-      releaseDate: new Date(
-        (
-          rows.find(({ header }) => header === '配信開始日：') ??
-          rows.find(({ header }) => header === '商品発売日：')
-        )?.content!,
-      ).getTime(),
+      releaseDate: ((val) => (val ? new Date(val).getTime() : val))(
+        rows.find(
+          ({ header }) =>
+            header === '配信開始日：' || header === '商品発売日：',
+        )?.content,
+      ),
       cover: await page
         .$('#EnlargeImage')
         .then((handler) => handler?.evaluate((el) => el.getAttribute('href'))),
-      description: await page
-        .$('#introduction dd')
-        .then((handler) => handler?.evaluate((el) => el.textContent?.trim())),
-      screenshots:
-        (await page
-          .$$('#sample-photo .sample_image')
-          .then((arr) =>
-            Promise.all(
-              arr.map((handler) =>
-                handler?.evaluate((el) => el.getAttribute('href')),
-              ),
-            ),
-          )) ?? [],
+      description: await page.$eval('#introduction dd', (el) =>
+        el.textContent.trim(),
+      ),
+      screenshots: await page.$$eval('#sample-photo .sample_image', (arr) =>
+        arr.map((el) => el.getAttribute('href')),
+      ),
       // NOTE: MGStage's actress info is worthless most of the time
       // actors: rows
       //   .find(({ header }) => header === '出演：')
@@ -94,8 +89,8 @@ export class MgstageJaProvider implements Provider {
       url.startsWith('/') ? `${this.domain}${url}` : url,
       commonMGSPageOptions,
     )
-    if (!page) {
-      return page
+    if (page.isClosed()) {
+      return
     }
     return await this.getContentMetadata(page).finally(() => closePage(page))
   }
@@ -105,17 +100,12 @@ export class MgstageJaProvider implements Provider {
       `${this.domain}/search/cSearch.php?search_word=${id}`,
       commonMGSPageOptions,
     )
-    if (!page) {
+    if (page.isClosed()) {
       return []
     }
     return await page
-      .$$('h5')
-      .then((arr) =>
-        Promise.all(
-          arr.map((e) =>
-            e?.evaluate((e) => e.querySelector('a')?.getAttribute('href')),
-          ),
-        ),
+      .$$eval('h5', (arr) =>
+        arr.map((e) => e.querySelector('a')?.getAttribute('href')),
       )
       .then(compact)
       .then(uniq)

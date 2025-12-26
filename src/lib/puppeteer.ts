@@ -1,8 +1,8 @@
 import puppeteer from 'puppeteer-extra'
-import { Browser, CookieData, Page } from 'puppeteer'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { createServerOnlyFn } from '@tanstack/react-start'
 import { pick } from 'lodash-es'
+import type { Browser, CookieData, Page } from 'puppeteer'
 
 let browser: Browser | undefined = undefined
 const blockedUrl = [
@@ -49,7 +49,7 @@ export const removeCookies = async (domain: string) => {
 }
 
 export const openPage = createServerOnlyFn(
-  async (url: string, opts?: { cookies?: CookieData[] }) => {
+  async (url: string, opts?: { cookies?: Array<CookieData> }) => {
     puppeteer.use(StealthPlugin())
     if (!browser?.connected) {
       browser = await puppeteer.launch({
@@ -66,16 +66,15 @@ export const openPage = createServerOnlyFn(
     const page = await context.newPage({ type: 'tab' })
     await page.setRequestInterception(true)
     page.on('request', (req) => {
-      const url = req.url()
-      if (blockedUrl.some((u) => url.startsWith(u))) {
+      const requestUrl = req.url()
+      if (blockedUrl.some((u) => requestUrl.startsWith(u))) {
         req.abort()
       } else {
         req.continue()
       }
     })
-    let newPage: Page | undefined = undefined
-    await gotoWithRetry(page, url).catch(async (e) => {
-      console.error(e)
+    let newPage = undefined as Page | undefined
+    await gotoWithRetry(page, url).catch(async () => {
       await page.close()
       browser = undefined
       newPage = await openPage(url, opts)

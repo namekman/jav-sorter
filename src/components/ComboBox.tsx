@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 
+import { useDebouncedCallback } from '@tanstack/react-pacer'
+import { ScrollArea } from './ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,8 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useDebouncedCallback } from '@tanstack/react-pacer'
-import { ScrollArea } from './ui/scroll-area'
 
 export type ComboBoxItemType = {
   value: string

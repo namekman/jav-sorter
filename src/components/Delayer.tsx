@@ -1,5 +1,6 @@
-import { useState, useEffect, PropsWithChildren } from 'react'
+import { useEffect, useState } from 'react'
 import { Spinner } from './ui/spinner'
+import type { PropsWithChildren } from 'react';
 
 export const Delayer = <T extends object>({
   data,

@@ -1,12 +1,12 @@
-import { Actor } from '@/model/Actor'
-import { ActressProvider } from '../ActressProvider'
+import type { ActressProvider } from '../ActressProvider'
+import type { Actor } from '@/model/Actor'
 import { closePage, openPage } from '@/lib/puppeteer'
 
 export class EroDougazoActressProvider implements ActressProvider {
   name = 'ero-dougazou'
   domain = 'https://erodougazo.com'
   async getInfo(info: Partial<Actor>) {
-    let name = info?.jpName || info?.enName
+    const name = info.jpName || info.enName
     if (!name) {
       return
     }
@@ -15,7 +15,7 @@ export class EroDougazoActressProvider implements ActressProvider {
       return
     }
     try {
-      await page.type('input[name="data[AvJoyu][name]', name!)
+      await page.type('input[name="data[AvJoyu][name]', name)
       await page.click('.SearchActressKanaWrap input[type="submit"]')
       await page.waitForNavigation({
         waitUntil: 'networkidle2',
@@ -23,29 +23,26 @@ export class EroDougazoActressProvider implements ActressProvider {
       })
       if (page.url().includes('/actress/av')) {
         const actress = await page.$eval('.APname a', (el) => {
-          const jpName = el.querySelector('span')?.textContent!
+          const jpName = el.querySelector('span')?.textContent ?? ''
           const aliases = el
             .querySelector('.other_name')
-            ?.textContent?.split('、')
+            ?.textContent.split('、')
 
-          const texts: string[] = Array.prototype.filter
+          const texts: Array<string> = Array.prototype.filter
             .call(el.childNodes, (child) => child.nodeType === Node.TEXT_NODE)
             .map((child) => child.textContent.trim())
             .filter(Boolean)
 
           const [furigana, enName] = (
-            texts.length > 1
-              ? texts
-              : texts?.[0].replaceAll('\t', '').split(' ')
+            texts.length > 1 ? texts : texts[0].replaceAll('\t', '').split(' ')
           ).map((text) => text.replace(/([A-Z]+)/g, ' $1').trim())
           return { jpName, aliases, furigana, enName }
         })
         const thumbnail = await page
-          .$eval(
-            '.ActressProfileThumb',
-            (el) => el.querySelector('img')?.getAttribute('src')!,
+          .$eval('.ActressProfileThumb', (el) =>
+            el.querySelector('img')?.getAttribute('src'),
           )
-          .then((thumbnail) => !thumbnail?.startsWith('/') && thumbnail)
+          .then((src) => !src?.startsWith('/') && src)
         return (thumbnail ? { ...actress, thumbnail } : actress) as Actor
       }
       // TODO Index case

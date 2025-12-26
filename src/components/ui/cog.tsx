@@ -1,55 +1,55 @@
-'use client';
+'use client'
 
-import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { motion, useAnimation } from 'motion/react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react'
+import { motion, useAnimation } from 'motion/react'
+import type { HTMLAttributes } from 'react'
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'
 
 export interface CogIconHandle {
-  startAnimation: () => void;
-  stopAnimation: () => void;
+  startAnimation: () => void
+  stopAnimation: () => void
 }
 
 interface CogIconProps extends HTMLAttributes<HTMLDivElement> {
-  size?: number;
+  size?: number
 }
 
 const CogIcon = forwardRef<CogIconHandle, CogIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
-    const controls = useAnimation();
-    const isControlledRef = useRef(false);
+    const controls = useAnimation()
+    const isControlledRef = useRef(false)
 
     useImperativeHandle(ref, () => {
-      isControlledRef.current = true;
+      isControlledRef.current = true
 
       return {
         startAnimation: () => controls.start('animate'),
         stopAnimation: () => controls.start('normal'),
-      };
-    });
+      }
+    })
 
     const handleMouseEnter = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start('animate');
+          controls.start('animate')
         } else {
-          onMouseEnter?.(e);
+          onMouseEnter?.(e)
         }
       },
-      [controls, onMouseEnter]
-    );
+      [controls, onMouseEnter],
+    )
 
     const handleMouseLeave = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start('normal');
+          controls.start('normal')
         } else {
-          onMouseLeave?.(e);
+          onMouseLeave?.(e)
         }
       },
-      [controls, onMouseLeave]
-    );
+      [controls, onMouseLeave],
+    )
     return (
       <div
         className={cn(className)}
@@ -94,10 +94,10 @@ const CogIcon = forwardRef<CogIconHandle, CogIconProps>(
           <path d="m11 13.73-4 6.93" />
         </motion.svg>
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-CogIcon.displayName = 'CogIcon';
+CogIcon.displayName = 'CogIcon'
 
-export { CogIcon };
+export { CogIcon }

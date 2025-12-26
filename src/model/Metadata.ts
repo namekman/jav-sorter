@@ -1,4 +1,4 @@
-import { Actor } from './Actor'
+import type { Actor } from './Actor'
 
 export type Metadata = {
   type?: 'fc2' | 'jav'

@@ -1,9 +1,9 @@
-import { Metadata } from '@/model/Metadata'
+import fs from 'node:fs'
+import path from 'node:path'
 import { createServerOnlyFn } from '@tanstack/react-start'
-import fs from 'fs'
 import { compact, uniq } from 'lodash-es'
-import path from 'path'
 import { create } from 'xmlbuilder2'
+import type { Metadata } from '@/model/Metadata'
 
 export const serializeToXml = createServerOnlyFn(
   ({ metadata, outDir }: { metadata: Metadata; outDir: string }) => {

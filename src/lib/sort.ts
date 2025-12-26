@@ -1,11 +1,11 @@
-import { Media } from '@/model/Media'
+import fs from 'node:fs'
+import path from 'node:path'
 import { createServerFn } from '@tanstack/react-start'
 import { downloadAssets } from './downloader'
 import { serializeToXml } from './serializer'
-import fs from 'fs'
-import path from 'path'
 import { removeScan, updateScan } from './scan-repository'
-import { ScanResult } from './scanner'
+import type { ScanResult } from './scanner'
+import type { Media } from '@/model/Media'
 
 export const removeScanFn = createServerFn({ method: 'POST' })
   .inputValidator((params: string) => params)
@@ -17,7 +17,7 @@ export const updateDraftFn = createServerFn({ method: 'POST' })
   .inputValidator(
     (params: Pick<ScanResult, 'path' | 'currentMetadata'>) => params,
   )
-  .handler(async (params) => {
+  .handler((params) => {
     updateScan(params.data)
   })
 

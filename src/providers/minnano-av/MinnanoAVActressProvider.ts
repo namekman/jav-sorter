@@ -1,7 +1,7 @@
-import { Actor } from '@/model/Actor'
-import { ActressProvider } from '../ActressProvider'
-import { closePage, openPage } from '@/lib/puppeteer'
 import { compact } from 'lodash-es'
+import type { ActressProvider } from '../ActressProvider'
+import type { Actor } from '@/model/Actor'
+import { closePage, openPage } from '@/lib/puppeteer'
 
 const commonMinnanoPageOptions: Parameters<typeof openPage>[1] = {
   cookies: [
@@ -17,7 +17,7 @@ export class MinnanoAvActressProvider implements ActressProvider {
   name = 'minnano-av'
   domain = 'https://www.minnano-av.com'
   async getInfo(info: Partial<Actor>) {
-    let name = info?.jpName || info?.enName
+    const name = info.jpName || info.enName
     if (!name) {
       return
     }
@@ -31,9 +31,9 @@ export class MinnanoAvActressProvider implements ActressProvider {
     try {
       if (page.url().includes('/actress')) {
         const actress = await page.$eval('h1', (el) => {
-          const span = el.querySelector('span')?.textContent!
+          const span = el.querySelector('span')?.textContent ?? ''
 
-          const text: string = Array.prototype.filter
+          const text: string | undefined = Array.prototype.filter
             .call(el.childNodes, (child) => child.nodeType === Node.TEXT_NODE)
             .map((child) => child.textContent.trim())
             .find(Boolean)
@@ -42,25 +42,18 @@ export class MinnanoAvActressProvider implements ActressProvider {
           return { jpName, furigana, enName }
         })
         const thumbnail = await page
-          .$eval(
-            '.actress-header .thumb img',
-            (img) => img?.getAttribute('src')!,
-          )
-          .then((thumbnail) =>
-            thumbnail?.startsWith('/')
-              ? `${this.domain}${thumbnail}`
-              : thumbnail,
-          )
+          .$eval('.actress-header .thumb img', (img) => img.getAttribute('src'))
+          .then((img) => (img?.startsWith('/') ? `${this.domain}${img}` : img))
         const aliases = compact(
           await page.$$eval('.act-profile td', (arr) =>
             arr
-              .filter((td) => td.textContent?.includes('別名'))
+              .filter((td) => td.textContent.includes('別名'))
               .map(
-                (td) => td.querySelector('p')?.textContent?.split(/[(（]/)[0],
+                (td) => td.querySelector('p')?.textContent.split(/[(（]/)[0],
               ),
           ),
         )
-        return { ...actress, thumbnail, aliases } as Actor
+        return { ...actress, thumbnail: thumbnail ?? '', aliases } as Actor
       }
       // TODO Index case
     } finally {
