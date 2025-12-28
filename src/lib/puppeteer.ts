@@ -1,8 +1,11 @@
-import puppeteer from 'puppeteer-extra'
-import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { createServerOnlyFn } from '@tanstack/react-start'
-import { pick } from 'lodash-es'
-import type { Browser, CookieData, Page } from 'puppeteer'
+import { connect } from 'puppeteer-real-browser'
+import type {
+  BrowserContext,
+  Page,
+  CookieData,
+  Browser,
+} from 'rebrowser-puppeteer-core'
 
 let browser: Browser | undefined = undefined
 const blockedUrl = [
@@ -37,33 +40,22 @@ const gotoWithRetry = async (page: Page, url: string, count = 0) => {
   })
 }
 
-export const removeCookies = async (domain: string) => {
-  const cookies = await browser?.cookies()
-  await Promise.allSettled(
-    cookies
-      ?.filter(({ domain: cookieDomain }) => cookieDomain.includes(domain))
-      .map((cookie) =>
-        browser?.deleteMatchingCookies(pick(cookie, ['name', 'domain'])),
-      ) ?? [],
-  )
-}
-
 export const openPage = createServerOnlyFn(
-  async (url: string, opts?: { cookies?: Array<CookieData> }) => {
-    puppeteer.use(StealthPlugin())
+  async (url: string, opts?: { cookies?: CookieData[] }) => {
     if (!browser?.connected) {
-      browser = await puppeteer.launch({
-        headless: true,
-        devtools: false,
-        args: ['--sandbox', '--incognito'],
-      })
+      browser = (
+        await connect({
+          headless: true,
+          args: ['--sandbox', '--incognito'],
+        })
+      ).browser
     }
+    const context: BrowserContext = browser.defaultBrowserContext()
     if (opts?.cookies?.length) {
       const cookies = await browser.cookies()
-      await browser.setCookie(...cookies, ...opts.cookies)
+      await context.setCookie(...cookies, ...opts.cookies)
     }
-    const context = browser.defaultBrowserContext()
-    const page = await context.newPage({ type: 'tab' })
+    const page = await context.newPage()
     await page.setRequestInterception(true)
     page.on('request', (req) => {
       const requestUrl = req.url()

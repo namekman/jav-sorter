@@ -22,10 +22,10 @@ const openDatabase = () => {
 export const getAllScans = createServerOnlyFn(() => {
   const db = openDatabase()
 
-  return new Promise<Array<ScanResult>>((resolve, reject) => {
+  return new Promise<ScanResult[]>((resolve, reject) => {
     db.all(
       'SELECT * FROM scans ORDER BY path',
-      (err, rows: Array<Record<keyof ScanResult, string>>) => {
+      (err, rows: Record<keyof ScanResult, string>[]) => {
         if (err) {
           reject(err)
         } else {

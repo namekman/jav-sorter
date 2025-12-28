@@ -1,5 +1,5 @@
 import { compact, isNil, trim, uniq } from 'lodash-es'
-import type { Page } from 'puppeteer'
+import type { Page } from 'rebrowser-puppeteer-core'
 import type { Provider } from '../Provider'
 import type { Metadata } from '@/model/Metadata'
 import { closePage, openPage } from '@/lib/puppeteer'

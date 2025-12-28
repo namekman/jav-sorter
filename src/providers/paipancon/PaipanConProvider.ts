@@ -1,8 +1,8 @@
 import { compact } from 'lodash-es'
 import type { Provider } from '../Provider'
-import type { Page } from 'puppeteer'
+import type { Page } from 'rebrowser-puppeteer-core'
 import type { Metadata } from '@/model/Metadata'
-import { closePage, openPage, removeCookies } from '@/lib/puppeteer'
+import { closePage, openPage } from '@/lib/puppeteer'
 
 export class PaipanConProvider implements Provider {
   name = 'fc2'
@@ -92,7 +92,7 @@ export class PaipanConProvider implements Provider {
   }
 
   async getMetadata(url: string) {
-    await removeCookies(this.domain)
+    // await removeCookies(this.domain)
     const page = await openPage(url)
     return await this.getContentMetadata(page).finally(() => {
       closePage(page)
