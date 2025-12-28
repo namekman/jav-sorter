@@ -36,12 +36,14 @@ export const sortFileFn = createServerFn({ method: 'POST' })
       outDir: dir,
     })
     serializeToXml({ metadata: params.data.media.currentMetadata, outDir: dir })
-    fs.renameSync(
+
+    fs.copyFileSync(
       params.data.media.path,
       path.join(
         dir,
         `${params.data.media.currentMetadata.id!}${params.data.media.currentMetadata.part ? `-pt${params.data.media.currentMetadata.part}` : ''}${path.extname(params.data.media.path)}`,
       ),
     )
+    fs.rmSync(params.data.media.path)
     removeScan(params.data.media.path)
   })
