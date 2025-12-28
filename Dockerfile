@@ -1,20 +1,35 @@
-FROM node:22
+FROM node:22-alpine
 
 # Install necessary dependencies for Puppeteer and Chromium
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
-    gnupg \
-    ca-certificates \
-    apt-transport-https \
-    chromium \
-    chromium-driver \
-    xvfb \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache \
+        alsa-lib \
+        cairo \
+        cups-libs \
+        dbus-libs \
+        eudev-libs \
+        expat \
+        flac \
+        gdk-pixbuf \
+        glib \
+        libgcc \
+        libjpeg-turbo \
+        libpng \
+        libwebp \
+        libx11 \
+        libxcomposite \
+        libxdamage \
+        libxext \
+        libxfixes \
+        tzdata \
+        libexif \
+        udev \
+        xvfb \
+        zlib-dev \
+        chromium \
+        chromium-chromedriver \
+    && rm -rf /var/cache/apk/*
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
-ENV CHROME_BIN=/usr/bin/chromium
-
+ENV CHROME_BIN=/usr/bin/chromedriver
 
 WORKDIR /app
 COPY package*.json ./
