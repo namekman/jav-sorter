@@ -1,6 +1,7 @@
 import sqlite from 'sqlite3'
 import { createServerOnlyFn } from '@tanstack/react-start'
 import type { ScanResult } from './scanner'
+import fs from 'fs'
 
 const dbPath = './config/db/scanner.db'
 
@@ -19,10 +20,10 @@ const openDatabase = () => {
   )
 }
 
-export const getAllScans = createServerOnlyFn(() => {
+export const getAllScans = createServerOnlyFn(async () => {
   const db = openDatabase()
 
-  return new Promise<ScanResult[]>((resolve, reject) => {
+  const scans = await new Promise<ScanResult[]>((resolve, reject) => {
     db.all(
       'SELECT * FROM scans ORDER BY path',
       (err, rows: Record<keyof ScanResult, string>[]) => {
@@ -40,6 +41,10 @@ export const getAllScans = createServerOnlyFn(() => {
       },
     )
   })
+  scans
+    .filter((scan) => !fs.existsSync(scan.path))
+    .forEach((scan) => removeScan(scan.path))
+  return scans.filter((scan) => fs.existsSync(scan.path))
 })
 
 export const getScan = createServerOnlyFn((path: string) => {
@@ -50,7 +55,7 @@ export const getScan = createServerOnlyFn((path: string) => {
       'SELECT * FROM scans WHERE path = :path',
       { ':path': path },
       (err, row: Record<keyof ScanResult, string>) => {
-        if (err) {
+        if (err || !row) {
           reject(err)
         } else {
           resolve({

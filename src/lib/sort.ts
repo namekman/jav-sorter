@@ -1,49 +1,42 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { createServerFn } from '@tanstack/react-start'
+import fs from 'fs'
+import path from 'path'
 import { downloadAssets } from './downloader'
 import { serializeToXml } from './serializer'
-import { removeScan, updateScan } from './scan-repository'
-import type { ScanResult } from './scanner'
+import { removeScan } from './scan-repository'
 import type { Media } from '@/model/Media'
 
-export const removeScanFn = createServerFn({ method: 'POST' })
-  .inputValidator((params: string) => params)
-  .handler(({ data }) => {
-    removeScan(data)
+export const sortFile = async (params: { media: Media; outDir: string }) => {
+  const dir = path.join(params.outDir, params.media.currentMetadata.id!)
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir)
+  }
+  await downloadAssets({
+    metadata: params.media.currentMetadata,
+    outDir: dir,
   })
+  serializeToXml({ metadata: params.media.currentMetadata, outDir: dir })
 
-export const updateDraftFn = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (params: Pick<ScanResult, 'path' | 'currentMetadata'>) => params,
-  )
-  .handler((params) => {
-    updateScan(params.data)
-  })
-
-export const sortFileFn = createServerFn({ method: 'POST' })
-  .inputValidator((params: { media: Media; outDir: string }) => params)
-  .handler(async (params) => {
-    const dir = path.join(
-      params.data.outDir,
-      params.data.media.currentMetadata.id!,
-    )
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
-    await downloadAssets({
-      metadata: params.data.media.currentMetadata,
-      outDir: dir,
-    })
-    serializeToXml({ metadata: params.data.media.currentMetadata, outDir: dir })
-
-    fs.copyFileSync(
-      params.data.media.path,
+  return await new Promise<void>((resolve, reject) => {
+    fs.copyFile(
+      params.media.path,
       path.join(
         dir,
-        `${params.data.media.currentMetadata.id!}${params.data.media.currentMetadata.part ? `-pt${params.data.media.currentMetadata.part}` : ''}${path.extname(params.data.media.path)}`,
+        `${params.media.currentMetadata.id!}${params.media.currentMetadata.part ? `-pt${params.media.currentMetadata.part}` : ''}${path.extname(params.media.path)}`,
       ),
+      (err) => {
+        if (err) {
+          reject(err)
+        } else {
+          fs.rm(params.media.path, (err) => {
+            if (err) {
+              reject(err)
+            } else {
+              removeScan(params.media.path)
+              resolve()
+            }
+          })
+        }
+      },
     )
-    fs.rmSync(params.data.media.path)
-    removeScan(params.data.media.path)
   })
+}

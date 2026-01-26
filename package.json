@@ -10,7 +10,7 @@
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
-    "start": "node .output/server/index.mjs"
+    "start": "vite dev --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
@@ -48,6 +48,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "csv": "^6.4.1",
+    "fastq": "^1.20.1",
     "jimp": "^1.6.0",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.544.0",
@@ -58,6 +59,8 @@
     "react-dom": "^19.2.0",
     "redaxios": "^0.5.1",
     "sharp": "^0.34.5",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^3.0.2",
@@ -78,6 +81,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "baseline-browser-mapping": "^2.9.11",
     "jsdom": "^27.0.0",
     "nitro": "^3.0.1-alpha.1",
     "prettier": "^3.5.3",

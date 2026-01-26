@@ -3,8 +3,8 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
-
 import { nitro } from 'nitro/vite'
+import { configureWsServer } from './src/ws'
 
 const config = defineConfig({
   plugins: [
@@ -13,11 +13,16 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
+    {
+      name: 'socket.io',
+      configureServer: configureWsServer,
+    },
     tanstackStart(),
     nitro(),
     viteReact(),
   ],
-  nitro: {},
+  nitro: {
+  },
   build: {
     rollupOptions: {
       external: ['sqlite3'],

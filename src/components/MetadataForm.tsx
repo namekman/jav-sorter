@@ -1,57 +1,29 @@
-import { mutationOptions, useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Plus, Trash } from 'lucide-react'
 import { Button } from './ui/button'
 import { ActressChooserDialog } from './ActressChooserDialog'
 import type { Media } from '@/model/Media'
-import type { Metadata } from '@/model/Metadata'
 import { useAppForm } from '@/hooks/sort.form'
-import { sortFileFn, updateDraftFn } from '@/lib/sort'
+import { useScanContext } from '@/contexts/ScanContext'
 
-export const MetadataForm = ({
-  media,
-  outDir,
-  onSuccess,
-}: {
-  media: Media
-  outDir: string
-  onSuccess?: (path: string) => void
-}) => {
-  const { mutateAsync: sort } = useMutation(
-    mutationOptions({
-      mutationKey: ['sort', media.path],
-      mutationFn: (currentMetadata: Metadata) =>
-        sortFileFn({ data: { media: { ...media, currentMetadata }, outDir } }),
-      onSuccess: () => onSuccess?.(media.path),
-    }),
-  )
-  const { mutateAsync: updateDraft } = useMutation(
-    mutationOptions({
-      mutationFn: (data: { currentMetadata: Metadata; media: Media }) =>
-        updateDraftFn({
-          data: {
-            currentMetadata: data.currentMetadata,
-            path: data.media.path,
-          },
-        }),
-      onSuccess: (_, data) => {
-        data.media.currentMetadata = data.currentMetadata
-      },
-    }),
-  )
+export const MetadataForm = ({ media }: { media: Media }) => {
+  const { sort, update, queue } = useScanContext()
   const form = useAppForm({
     defaultValues: media.currentMetadata,
-    onSubmit: ({ value }) => sort(value),
+    onSubmit: () => sort(media.path),
     listeners: {
-      onBlur: ({ formApi }) =>
-        updateDraft({ currentMetadata: formApi.baseStore.state.values, media }),
+      onChangeDebounceMs: 1000,
+      onChange: ({ formApi }) =>
+        update({
+          currentMetadata: formApi.state.values,
+          path: media.path,
+        }),
     },
   })
 
   useEffect(() => {
     form.reset(media.currentMetadata)
   }, [media.currentMetadata])
-
   return (
     <form
       onSubmit={async (e) => {
@@ -59,12 +31,17 @@ export const MetadataForm = ({
         await form.handleSubmit()
       }}
     >
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-[minmax(300px,0.7fr)_minmax(300px,0.3fr)]">
         <div>
           <div className="flex gap-2">
             <div className="my-auto">{media.path}</div>
             <form.AppForm>
-              <form.SubscribeButton label="Sort" />
+              <form.SubscribeButton
+                label="Sort"
+                isWorking={queue.some(
+                  (t) => t.path === media.path && t.type === 'sort',
+                )}
+              />
             </form.AppForm>
           </div>
           <div className="flex gap-2">

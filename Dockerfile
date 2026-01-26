@@ -41,7 +41,6 @@ COPY tsconfig.json .
 COPY jvThumbs.csv .
 
 RUN npm install
-RUN npm run build
 
 RUN mkdir -p ./config/db
 

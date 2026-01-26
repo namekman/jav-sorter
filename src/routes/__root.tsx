@@ -11,9 +11,10 @@ import Header from '../components/Header'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
-import type {QueryClient} from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query'
 
 import { Toaster } from '@/components/ui/sonner'
+import { ScanContextProvider } from '@/contexts/ScanContext'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -50,9 +51,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="grid grid-rows-[76px_1fr] h-dvh">
         <Header />
-        <div className="m-3">{children}</div>
+        <ScanContextProvider>
+          <div className="m-3">{children}</div>
+        </ScanContextProvider>
         <Toaster position="top-center" />
         <TanStackDevtools
           config={{

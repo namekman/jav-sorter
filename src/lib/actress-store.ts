@@ -1,10 +1,9 @@
 import fs from 'node:fs'
-import { createServerFn } from '@tanstack/react-start'
 import { Store } from '@tanstack/store'
 import * as csv from 'csv'
 import { compact, mergeWith, uniq, uniqBy } from 'lodash-es'
+import { actressProviders } from '../providers/repository'
 import type { Actor } from '@/model/Actor'
-import { actressProviders } from '@/providers/repository'
 
 export const actressStore = new Store<Actor[]>([])
 
@@ -25,7 +24,7 @@ export const searchSelector = (query: string) => (actors: Actor[]) => {
 export const fuzzyActressSearch = (query: string, actors: Actor[]) =>
   actors.filter(
     (actor) =>
-      actor.enName.includes(query) ||
+      actor.enName?.includes(query) ||
       actor.jpName.includes(query) ||
       actor.aliases?.some((alias) => alias.includes(query)),
   )
@@ -115,35 +114,32 @@ export const syncRepository = (actor: Actor, actors: Actor[]) => {
   return related ?? actor
 }
 
-export const fetchActresses = createServerFn({ method: 'GET' })
-  .inputValidator((file?: string) => file)
-  .handler(async ({ data: file = 'jvThumbs.csv' }) => {
-    return new Promise<Actor[]>((resolve) => {
-      const actors: Actor[] = []
-      const parser = fs
-        .createReadStream(file)
-        .pipe(csv.parse())
-        // .pipe(
-        //   csv.transform(([enName, , , jpName, thumbnail, alias]: string[]) => ({
-        //     jpName,
-        //     enName,
-        //     aliases: alias.split('|'),
-        //     thumbnail,
-        //   })),
-        // )
-        .on('readable', () => {
-          let record: string[]
-          while ((record = parser.read()) !== null) {
-            actors.push({
-              jpName: record[3],
-              enName: record[0],
-              aliases: compact(record[5]?.split('|')),
-              thumbnail: record[4],
-            })
-          }
-        })
-        .on('end', () => {
-          resolve(actors)
-        })
-    })
+export const fetchActresses = (file: string = 'jvThumbs.csv') =>
+  new Promise<Actor[]>((resolve) => {
+    const actors: Actor[] = []
+    const parser = fs
+      .createReadStream(file)
+      .pipe(csv.parse())
+      // .pipe(
+      //   csv.transform(([enName, , , jpName, thumbnail, alias]: string[]) => ({
+      //     jpName,
+      //     enName,
+      //     aliases: alias.split('|'),
+      //     thumbnail,
+      //   })),
+      // )
+      .on('readable', () => {
+        let record: string[]
+        while ((record = parser.read()) !== null) {
+          actors.push({
+            jpName: record[3],
+            enName: record[0],
+            aliases: compact(record[5]?.split('|')),
+            thumbnail: record[4],
+          })
+        }
+      })
+      .on('end', () => {
+        resolve(actors)
+      })
   })

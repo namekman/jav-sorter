@@ -1,6 +1,6 @@
 import type { ActressProvider } from '../ActressProvider'
 import type { Actor } from '@/model/Actor'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 export class EroDougazoActressProvider implements ActressProvider {
   name = 'ero-dougazou'

@@ -1,7 +1,7 @@
 import { compact, isNil, uniq } from 'lodash-es'
 import type { Provider } from '../Provider'
 import type { Metadata } from '@/model/Metadata'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 export class XXXPlanetProvider implements Provider {
   name = '3xPlanet'

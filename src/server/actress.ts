@@ -10,3 +10,7 @@ export const fetchActressFn = createServerFn({ method: 'GET' })
     const actresses = await fetchActresses()
     return fuzzyActressSearch(data, actresses)
   })
+
+export const fetchActressesFn = createServerFn({ method: 'GET' }).handler(() =>
+  fetchActresses(),
+)

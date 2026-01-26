@@ -1,13 +1,12 @@
-import path from 'node:path'
-import fs from 'node:fs'
+import path from 'path'
+import fs from 'fs'
 import { compact, mergeWith, sortBy, uniq, uniqBy } from 'lodash-es'
-import { createServerFn } from '@tanstack/react-start'
 import { searchActress } from './actress-store'
 import { saveScan } from './scan-repository'
-import type { Media } from '@/model/Media'
-import type { Metadata } from '@/model/Metadata'
-import type { Actor } from '@/model/Actor'
-import { fc2Providers, providers } from '@/providers/repository'
+import type { Media } from '../model/Media'
+import type { Metadata } from '../model/Metadata'
+import type { Actor } from '../model/Actor'
+import { fc2Providers, providers } from '../providers/repository'
 
 const extensions = ['.mp4', '.mkv', '.avi', '.wmv']
 
@@ -153,15 +152,12 @@ export const scanDirectory = (
   )
 }
 
-export const listDirectory = createServerFn({ method: 'GET' })
-  .inputValidator((dir: string) => dir)
-  .handler(({ data: dir }) =>
-    sortBy(
-      fs.readdirSync(dir, { withFileTypes: true }).map((file) => ({
-        name: file.name,
-        type: file.isDirectory() ? ('dir' as const) : ('file' as const),
-        path: path.join(file.parentPath, file.name),
-      })),
-      (f) => f.path.toLocaleLowerCase(),
-    ).filter((file) => extensions.includes(path.extname(file.name))),
-  )
+export const listDirectory = (dir: string) =>
+  sortBy(
+    fs.readdirSync(dir, { withFileTypes: true }).map((file) => ({
+      name: file.name,
+      type: file.isDirectory() ? ('dir' as const) : ('file' as const),
+      path: path.join(file.parentPath, file.name),
+    })),
+    (f) => f.path.toLocaleLowerCase(),
+  ).filter((file) => extensions.includes(path.extname(file.name)))

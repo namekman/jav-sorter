@@ -19,18 +19,24 @@ import { Slider as ShadcnSlider } from '@/components/ui/slider'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
-export function SubscribeButton({ label }: { label: string }) {
+export function SubscribeButton({
+  label,
+  isWorking,
+}: {
+  label: string
+  isWorking?: boolean
+}) {
   const form = useFormContext()
   return (
     <form.Subscribe selector={(state) => state.isSubmitting}>
       {(isSubmitting) => (
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isWorking}
           className="cursor-pointer"
         >
           {label}
-          {isSubmitting && <Spinner />}
+          {(isSubmitting || isWorking) && <Spinner />}
         </Button>
       )}
     </form.Subscribe>

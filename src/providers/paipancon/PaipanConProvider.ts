@@ -2,7 +2,7 @@ import { compact } from 'lodash-es'
 import type { Provider } from '../Provider'
 import type { Page } from 'rebrowser-puppeteer-core'
 import type { Metadata } from '@/model/Metadata'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 export class PaipanConProvider implements Provider {
   name = 'fc2'

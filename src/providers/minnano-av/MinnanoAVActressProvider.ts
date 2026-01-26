@@ -1,7 +1,7 @@
 import { compact } from 'lodash-es'
 import type { ActressProvider } from '../ActressProvider'
 import type { Actor } from '@/model/Actor'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 const commonMinnanoPageOptions: Parameters<typeof openPage>[1] = {
   cookies: [

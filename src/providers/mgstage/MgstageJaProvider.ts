@@ -2,7 +2,7 @@ import { compact, trim, uniq } from 'lodash-es'
 import type { Page } from 'rebrowser-puppeteer-core'
 import type { Provider } from '../Provider'
 import type { Metadata } from '@/model/Metadata'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 const commonMGSPageOptions: Parameters<typeof openPage>[1] = {
   cookies: [

@@ -1,7 +1,7 @@
 import { compact, uniq } from 'lodash-es'
 import type { Provider } from '../Provider'
 import type { Metadata } from '@/model/Metadata'
-import { closePage, openPage } from '@/lib/puppeteer'
+import { closePage, openPage } from '../../lib/puppeteer'
 
 export class AVWikiProvider implements Provider {
   name = 'av-wiki'

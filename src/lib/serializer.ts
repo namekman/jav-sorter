@@ -1,5 +1,5 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'fs'
+import path from 'path'
 import { createServerOnlyFn } from '@tanstack/react-start'
 import { compact, uniq } from 'lodash-es'
 import { create } from 'xmlbuilder2'
