@@ -41,7 +41,7 @@ export const Route = createFileRoute('/')({
 
 export function Sort() {
   const { config } = Route.useLoaderData()
-  const { scans, status, queue, remove, update, scan } = useScanContext()
+  const { scans, queue, remove, update, scan, sort } = useScanContext()
   const [selected, setSelected] = useState<number>()
   const {
     data: files,
@@ -139,13 +139,19 @@ export function Sort() {
             files={files ?? []}
             refresh={refetch}
             onClick={(item, action) => {
-              if (action === 'sort') {
-                scan(item)
-              } else {
-                const idx = scans.findIndex(({ path }) => path === item)
-                if (idx !== -1) {
-                  setSelected(idx)
-                }
+              switch (action) {
+                case 'sort':
+                  scan(item)
+                  break
+                case 'send':
+                  sort(item)
+                  break
+                case 'open':
+                  const idx = scans.findIndex(({ path }) => path === item)
+                  if (idx !== -1) {
+                    setSelected(idx)
+                  }
+                  break
               }
             }}
             selected={selectedData?.path}

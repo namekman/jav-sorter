@@ -3,7 +3,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { File, Folder, RefreshCcw } from 'lucide-react'
+import { File, Folder, Play, RefreshCcw } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -29,7 +29,7 @@ export const FileTable = ({
   done = [],
 }: {
   files: Awaited<ReturnType<typeof listDirectory>>
-  onClick: (file: string, action: 'sort' | 'open') => void
+  onClick: (file: string, action: 'sort' | 'open' | 'send') => void
   refresh: () => void
   selected?: string
   inProgress?: string[]
@@ -67,7 +67,7 @@ export const FileTable = ({
         ),
       },
       {
-        header: 'Name',
+        id: 'sort',
         cell: (props) => (
           <a
             className="cursor-pointer flex gap-2"
@@ -76,6 +76,20 @@ export const FileTable = ({
             {props.row.original.type === 'dir' ? <Folder /> : <File />}
             {props.row.original.name}
           </a>
+        ),
+      },
+      {
+        id: 'send',
+
+        cell: (props) => (
+          <Button
+            variant="ghost"
+            className="cursor-pointer relative"
+            disabled={!done.includes(props.row.original.path)}
+            onClick={() => onClick(props.row.original.path, 'send')}
+          >
+            <Play />
+          </Button>
         ),
       },
     ],
