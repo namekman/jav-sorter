@@ -9,14 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MediaRouteImport } from './routes/media'
 import { Route as IndexRouteImport } from './routes/index'
 
-const MediaRoute = MediaRouteImport.update({
-  id: '/media',
-  path: '/media',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,39 +19,28 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/media': typeof MediaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/media': typeof MediaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/media': typeof MediaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/media'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/media'
-  id: '__root__' | '/' | '/media'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MediaRoute: typeof MediaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/media': {
-      id: '/media'
-      path: '/media'
-      fullPath: '/media'
-      preLoaderRoute: typeof MediaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -70,7 +53,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MediaRoute: MediaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

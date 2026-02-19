@@ -9,6 +9,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useCallback,
 } from 'react'
 import io from 'socket.io-client'
 import { toast } from 'sonner'
@@ -26,7 +27,6 @@ type ScanContextState = {
   remove: (path: string) => void
   scans: ScanResult[]
   queue: { type: 'sort' | 'scan'; path: string }[]
-  status?: Status
 }
 
 const socket = io()
@@ -44,7 +44,9 @@ export const useScanContext = () => useContext(ScanContext)
 
 export const ScanContextProvider = ({ children }: PropsWithChildren) => {
   const [data, setData] = useState<ScanResult[]>([])
-  const [status, setStatus] = useState<Status>()
+  const [tmpQueue, setTmpQueue] = useState<
+    { type: 'sort' | 'scan'; path: string }[]
+  >([])
   const [queue, setQueue] = useState<{ type: 'sort' | 'scan'; path: string }[]>(
     [],
   )
@@ -62,9 +64,6 @@ export const ScanContextProvider = ({ children }: PropsWithChildren) => {
     socket.on('scan-removed', (scanPath) => {
       setData((data) => data.filter(({ path }) => path !== scanPath))
     })
-    socket.on('status', (status: Status) => {
-      setStatus(status)
-    })
     socket.on('queue', (queue: { type: 'sort' | 'scan'; path: string }[]) => {
       setQueue(queue)
     })
@@ -74,13 +73,25 @@ export const ScanContextProvider = ({ children }: PropsWithChildren) => {
       )
     })
   }, [])
+
+  const sendEvent = useCallback(
+    (ev: { type: 'sort' | 'scan'; path: string }) => {
+      socket.emit(ev.type, ev.path)
+      setTmpQueue((q) => [...q, ev])
+    },
+    [setTmpQueue],
+  )
+
+  useEffect(() => {
+    setTmpQueue([])
+  }, [queue])
+
   const value: ScanContextState = useMemo(
     () => ({
       scans: data,
-      status,
-      queue,
-      scan: (path) => socket.emit('scan', path),
-      sort: (path) => socket.emit('sort', path),
+      queue: [...queue, ...tmpQueue],
+      scan: (path) => sendEvent({ type: 'scan', path }),
+      sort: (path) => sendEvent({ type: 'sort', path }),
       update: (params) => {
         const idx = findIndex(data, (d) => d.path === params.path)
         if (idx !== -1) {
@@ -99,7 +110,7 @@ export const ScanContextProvider = ({ children }: PropsWithChildren) => {
       },
       remove: (path) => socket.emit('removed', path),
     }),
-    [queue, data, status],
+    [queue, data, sendEvent],
   )
 
   return <ScanContext.Provider value={value}>{children}</ScanContext.Provider>

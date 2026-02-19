@@ -21,11 +21,10 @@ const config = defineConfig({
     nitro(),
     viteReact(),
   ],
-  nitro: {
-  },
+  nitro: {},
   build: {
     rollupOptions: {
-      external: ['sqlite3'],
+      external: ['sqlite3', 'mariadb'],
     },
   },
 })

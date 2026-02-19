@@ -46,6 +46,7 @@ export const openPage = createServerOnlyFn(
       browser = (
         await connect({
           headless: true,
+          // turnstile: true,
           args: ['--sandbox', '--incognito'],
         })
       ).browser

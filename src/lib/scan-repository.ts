@@ -1,98 +1,40 @@
-import sqlite from 'sqlite3'
+import fs from 'node:fs'
 import { createServerOnlyFn } from '@tanstack/react-start'
 import type { ScanResult } from './scanner'
-import fs from 'fs'
-
-const dbPath = './config/db/scanner.db'
-
-const openDatabase = () => {
-  const db = new sqlite.Database(
-    dbPath,
-    sqlite.OPEN_READWRITE | sqlite.OPEN_CREATE,
-    (err) => {
-      if (err) {
-        console.error('Error connecting to database:', err.message)
-      }
-    },
-  )
-  return db.exec(
-    'CREATE TABLE IF NOT EXISTS scans (path TEXT PRIMARY KEY, metadatas TEXT, currentMetadata TEXT);',
-  )
-}
+import { ScanTable } from './db'
 
 export const getAllScans = createServerOnlyFn(async () => {
-  const db = openDatabase()
-
-  const scans = await new Promise<ScanResult[]>((resolve, reject) => {
-    db.all(
-      'SELECT * FROM scans ORDER BY path',
-      (err, rows: Record<keyof ScanResult, string>[]) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(
-            rows.map((row) => ({
-              path: row.path,
-              currentMetadata: JSON.parse(row.currentMetadata),
-              metadatas: JSON.parse(row.metadatas),
-            })),
-          )
-        }
-      },
-    )
-  })
+  await ScanTable.sync()
+  const scans = await ScanTable.findAll()
   scans
-    .filter((scan) => !fs.existsSync(scan.path))
-    .forEach((scan) => removeScan(scan.path))
-  return scans.filter((scan) => fs.existsSync(scan.path))
+    .filter((scan) => !fs.existsSync(scan.get().path))
+    .forEach((scan) => removeScan(scan.get().path))
+  return scans
+    .filter((scan) => fs.existsSync(scan.get().path))
+    .map((scan) => scan.get())
 })
 
 export const getScan = createServerOnlyFn((path: string) => {
-  const db = openDatabase()
-
-  return new Promise<ScanResult>((resolve, reject) => {
-    db.get(
-      'SELECT * FROM scans WHERE path = :path',
-      { ':path': path },
-      (err, row: Record<keyof ScanResult, string>) => {
-        if (err || !row) {
-          reject(err)
-        } else {
-          resolve({
-            path,
-            currentMetadata: JSON.parse(row.currentMetadata),
-            metadatas: JSON.parse(row.metadatas),
-          })
-        }
-      },
-    )
-  })
+  return ScanTable.findByPk(path).then((scan) => scan?.get())
 })
 
 export const removeScan = createServerOnlyFn((path: string) => {
-  const db = openDatabase()
-
-  db.run('DELETE FROM scans WHERE path = :path', { ':path': path })
+  ScanTable.destroy({
+    where: {
+      path,
+    },
+  })
 })
 
 export const updateScan = createServerOnlyFn(
   (data: Pick<ScanResult, 'path' | 'currentMetadata'>) => {
-    const db = openDatabase()
-    db.run('UPDATE scans SET currentMetadata = :current WHERE path = :path', {
-      ':path': data.path,
-      ':current': JSON.stringify(data.currentMetadata),
-    })
+    ScanTable.update(
+      { currentMetadata: data.currentMetadata },
+      { where: { path: data.path } },
+    )
   },
 )
 
 export const saveScan = createServerOnlyFn((scan: ScanResult) => {
-  const db = openDatabase()
-  db.run(
-    'INSERT OR REPLACE INTO scans (path, metadatas, currentMetadata) VALUES (:path, :metadatas, :current)',
-    {
-      ':path': scan.path,
-      ':metadatas': JSON.stringify(scan.metadatas),
-      ':current': JSON.stringify(scan.currentMetadata),
-    },
-  )
+  ScanTable.upsert(scan)
 })

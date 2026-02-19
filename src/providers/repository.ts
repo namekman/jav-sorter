@@ -3,6 +3,7 @@ import { AVWikiProvider } from './av-wiki/AVWikiProvider'
 import { DmmJaProvider } from './dmm/DmmJaProvider'
 import { EroDougazoActressProvider } from './ero-dougazo/EroDougazoActressProvider'
 import { FC2Provider } from './fc2/FC2Provider'
+// import { FD2Provider } from './fd2/FD2Provider'
 import { MgstageJaProvider } from './mgstage/MgstageJaProvider'
 import { MinnanoAvActressProvider } from './minnano-av/MinnanoAVActressProvider'
 import { PaipanConProvider } from './paipancon/PaipanConProvider'
@@ -11,6 +12,7 @@ import type { Provider } from './Provider'
 import type { ActressProvider } from './ActressProvider'
 
 export const fc2Providers: Provider[] = [
+  // new FD2Provider(),
   new PaipanConProvider(),
   new FC2Provider(),
 ]

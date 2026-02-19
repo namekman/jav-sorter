@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Trash } from 'lucide-react'
-import { isNil, merge } from 'lodash-es'
+import { isNil, merge, uniqBy } from 'lodash-es'
 import { FileTable } from '@/components/FileTable'
 import { listFiles } from '@/server/sorter'
 import { MetadataForm } from '@/components/MetadataForm'
@@ -58,15 +58,15 @@ export function Sort() {
   }, [scans, selected])
 
   useEffect(() => {
-    if (!status?.inProgress) {
-      refetch()
-    }
-  }, [status])
+    refetch()
+  }, [scans.length])
 
   const selectedData = useMemo(
     () => (isNil(selected) ? undefined : scans[selected]),
     [scans, selected],
   )
+
+  const inProgress = useMemo(() => uniqBy(queue, 'type'), [])
   return (
     <div className="grid grid-cols-[300px_1fr] gap-2 h-full">
       <div className="w-full flex flex-col gap-2 max-h-192">
@@ -87,7 +87,6 @@ export function Sort() {
           >
             <SelectTrigger className="w-full overflow-hidden">
               <SelectValue />
-              {status?.inProgress && <Spinner />}
             </SelectTrigger>
             <SelectContent>
               {scans.map((val, idx) => (
@@ -150,11 +149,8 @@ export function Sort() {
               }
             }}
             selected={selectedData?.path}
-            inProgress={queue.slice(0, 1).map((q) => q.path)}
-            inQueue={queue
-              .slice(1)
-              .filter((t) => t.type === 'scan')
-              .map((t) => t.path)}
+            inProgress={inProgress.map((t) => t.path)}
+            inQueue={queue.map((t) => t.path)}
             done={scans.map((s) => s.path)}
           />
         )}
